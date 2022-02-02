@@ -165,15 +165,12 @@ def plot_graph(g, save_path = None):
     plt.savefig(save_path)
     plt.close()
 
-def equality_check(graph, pointer_key1, pointer_key2):
-    pass
-
 def find_matched_id(key, matched_key):
     for key1, key2 in matched_key:
         if key == key1:
             return key2
 
-def block_check(graph1, graph2, matched_key = None):
+def is_equal(graph1, graph2, matched_key = None):
     #check g1&g2 if they follow the Equality (recurvise)
     if len(graph1) != len(graph2):
         return False
@@ -207,15 +204,15 @@ def block_check(graph1, graph2, matched_key = None):
             return False
         for key2 in possible_vertkey:
             #print(possible_vertkey)
-            if graph1.getVertex(key1).isPointer() == True and graph2.getVertex(key2).isPointer() == True:
+            if graph1.getVertex(key1).isPointer() and graph2.getVertex(key2).isPointer():
                 block1 = graph1.getVertex(key1).childBlock
                 block2 = graph2.getVertex(key1).childBlock
-                res = block_check(block1, block2)
+                res = is_equal(block1, block2)
                 if not res:
                     continue
             new_matched_key = matched_key.copy()
             new_matched_key.append((key1, key2))
-            res = block_check(graph1, graph2, new_matched_key)
+            res = is_equal(graph1, graph2, new_matched_key)
             if not res:
                 continue
             else:
@@ -262,25 +259,43 @@ def create_graphs(indegree_num, outdegree_num, nodes_num = 1, graphs_num = 1):
         gs.append(g)
     return gs
 
+def is_condition(graph):
+    #search all of the pointers in such graph
+    #check whether each pair of them fit the condition
+    #return False when some pair of pointers don't fit condition
+    pointers = list()
+    for key in graph.getVertices():
+        if graph.getVertex(key).isPointer():
+            pointers.append(graph.getVertex(key))
+    if len(pointers)>=2:
+        for i in range(len(pointers)-1):
+            for j in range(i+1, len(pointers)):
+                g1 = graph.getVertex(i).childBlock
+                g2 = graph.getVertex(j).childBlock
+                if not is_equal(g1, g2):
+                    return False
+    return True
+
 if __name__ == '__main__':
     #testing
-    g = create_graph(6, 3, 3, 'gA')
-    g2 = create_graph(6, 3, 3,'gB')
-    plot_graph(g, 'g')
-    show_details(g)
+    # g = create_graph(6, 3, 3, 'gA')
+    # g2 = create_graph(6, 3, 3,'gB')
+    # plot_graph(g, 'g')
+    # show_details(g)
 
-    g3 = g.clone()
-    plot_graph(g3, 'g3')
-    show_details(g3)
+    # g3 = g.clone()
+    # plot_graph(g3, 'g3')
+    # show_details(g3)
 
-    connect_block(g, 2, g2)
-    plot_graph(g2, 'g2')
+    # connect_block(g, 2, g2)
+    # plot_graph(g2, 'g2')
 
-    print(block_check(g, g))
-    print(block_check(g, g3))
+    # print(is_equal(g, g))
+    # print(is_equal(g, g3))
 
     gs_0, gs_1, gs_2, gs_3, gs_4, gs_5, gs_6 = create_graphs(4, 4, 8, 7)
 
     for i in range(7):
         plot_graph(eval('gs_{}'.format(i)), eval('gs_{}'.format(i)).Graph_name)
         show_details(eval('gs_{}'.format(i)))
+    print(is_equal(gs_0, gs_0))
