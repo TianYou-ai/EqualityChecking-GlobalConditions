@@ -170,6 +170,11 @@ def find_matched_id(key, matched_key):
         if key == key1:
             return key2
 
+def find_matched_id2(key, matched_key):
+    for key1, key2 in matched_key:
+        if key == key2:
+            return key1
+
 def is_equal(graph1, graph2, matched_key = None):
     #check g1&g2 if they follow the Equality (recurvise)
     if len(graph1) != len(graph2):
@@ -179,11 +184,19 @@ def is_equal(graph1, graph2, matched_key = None):
     if matched_key == None:
         matched_key = list()
     if len(matched_key) == len(graph1):
+        #check all edges in g1 could map on g2
         edges = graph1.getEdgesKey()
         for edge in edges:
             key2f = find_matched_id(edge[0], matched_key)
             key2t = find_matched_id(edge[1], matched_key)
             if (key2f, key2t) not in graph2.getEdgesKey():
+                return False
+        #check all edges in graph2 could map on graph1
+        edges = graph2.getEdgesKey()
+        for edge in edges:
+            key1f = find_matched_id2(edge[0], matched_key)
+            key1t = find_matched_id2(edge[1], matched_key)
+            if (key1f, key1t) not in graph1.getEdgesKey():
                 return False
         return True
     for key1 in graph1.getVertices():
