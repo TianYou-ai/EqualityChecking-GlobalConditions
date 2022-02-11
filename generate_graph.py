@@ -179,7 +179,7 @@ def is_equal(graph1, graph2, matched_key = None):
     #check g1&g2 if they follow the Equality (recurvise)
     if len(graph1) != len(graph2):
         return False
-    if len(graph1.getVertices()) != len(graph2.getVertices()):
+    if len(graph1.getEdges()) != len(graph2.getEdges()):
         return False
     if matched_key == None:
         matched_key = list()
@@ -201,7 +201,7 @@ def is_equal(graph1, graph2, matched_key = None):
         return True
     for key1 in graph1.getVertices():
         #print(key1, matched_key)
-        if key1 in filter((lambda x: x[0]), matched_key):
+        if key1 in map((lambda x: x[0]), matched_key):
             continue
         indegree1 = graph1.getIndegree(key1)
         outdegree1 = graph1.getOutdegree(key1)
