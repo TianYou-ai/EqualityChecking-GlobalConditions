@@ -1,0 +1,15 @@
+Graph name: test
+Number of nodes: 8
+Names of nodes: test-0,test-1,test-2,test-3,test-4,test-5,test-6,test-7
+Conditions on a position: out,in,out,out,out,in,in,in
+Keys of pointers: None
+(0, 3)
+(1, 4)
+(2, 3)
+(3, 0)
+(5, 2)
+(5, 0)
+(5, 3)
+(6, 0)
+(6, 4)
+(7, 4)

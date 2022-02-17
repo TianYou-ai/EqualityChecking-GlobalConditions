@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import random
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
 import copy
+
+from tools import plot_graph, show_details, is_connected
 
 def get_nodes_num(num, israndom = False):
     if israndom == False:
@@ -15,7 +14,7 @@ def get_degree_num(num, israndom = False):
     if israndom == False:
         return num
     else:
-        return random.randint(1, num)
+        return random.randint(0, num)
 
 class Vertex:
     def __init__(self,key):
@@ -24,6 +23,7 @@ class Vertex:
         self.name = None
         self.ifPointer = False
         self.childBlock = None
+        self.condition = None
 
     def addNeighbor(self,nbr,weight = 1):
         self.connectedTo[nbr] = weight
@@ -50,6 +50,9 @@ class Vertex:
 
     def isPointer(self):
         return self.ifPointer
+
+    def setCondition(self, label):
+        self.condition = label
 
 class Graph:
     def __init__(self, Graph_name = None):
@@ -124,6 +127,9 @@ class Graph:
     def addPointer(self, key, block):
         self.getVertex(key).addBlock(block)
 
+    def setCondition(self, key, label):
+        self.getVertex(key).setCondition(label)
+
     def clone(self):
         return copy.copy(self)
 
@@ -140,104 +146,14 @@ def create_graph(nodes_num, indegree_num, outdegree_num, name):
             t = g.getVertex(nbr).getId()
             if g.getIndegree(t) < max_indegree_num:
                 g.addEdge(f, t)
+    if not is_connected(g):
+        g = create_graph(nodes_num, indegree_num, outdegree_num, name)
     return g
 
 def connect_block(graph1, pointer_key, graph2):
     graph1.addPointer(pointer_key, graph2)
     graph2.Graph_name = graph1.getVertex(pointer_key).name
     return graph1, graph2
-
-def convert2networkx(g):
-    G = nx.MultiDiGraph(name = g.Graph_name)
-    G.add_nodes_from(g.getVerticesNames())
-    G.add_edges_from(g.getEdges(), loop = True)
-    return G
-
-def plot_graph(g, save_path = None):
-    if save_path == None:
-        save_path = g.Graph_name
-    G = convert2networkx(g)
-    pos = nx.spring_layout(G)
-    plt.subplot()
-    nx.draw(G, pos, with_labels = True, node_size = 1000, width=2.0)
-    plt.title(g.Graph_name)
-    plt.show()
-    plt.savefig(save_path)
-    plt.close()
-
-def find_matched_id(key, matched_key):
-    for key1, key2 in matched_key:
-        if key == key1:
-            return key2
-
-def find_matched_id2(key, matched_key):
-    for key1, key2 in matched_key:
-        if key == key2:
-            return key1
-
-def is_equal(graph1, graph2, matched_key = None):
-    #check g1&g2 if they follow the Equality (recurvise)
-    if len(graph1) != len(graph2):
-        return False
-    if len(graph1.getEdges()) != len(graph2.getEdges()):
-        return False
-    if matched_key == None:
-        matched_key = list()
-    if len(matched_key) == len(graph1):
-        #check all edges in g1 could map on g2
-        edges = graph1.getEdgesKey()
-        for edge in edges:
-            key2f = find_matched_id(edge[0], matched_key)
-            key2t = find_matched_id(edge[1], matched_key)
-            if (key2f, key2t) not in graph2.getEdgesKey():
-                return False
-        #check all edges in graph2 could map on graph1
-        edges = graph2.getEdgesKey()
-        for edge in edges:
-            key1f = find_matched_id2(edge[0], matched_key)
-            key1t = find_matched_id2(edge[1], matched_key)
-            if (key1f, key1t) not in graph1.getEdgesKey():
-                return False
-        return True
-    for key1 in graph1.getVertices():
-        #print(key1, matched_key)
-        if key1 in map((lambda x: x[0]), matched_key):
-            continue
-        indegree1 = graph1.getIndegree(key1)
-        outdegree1 = graph1.getOutdegree(key1)
-        possible_vertkey = list()
-        for key2 in graph2.getVertices():
-            if key2 in map((lambda x: x[1]), matched_key):
-                continue
-            indegree2 = graph2.getIndegree(key2)
-            outdegree2 = graph2.getOutdegree(key2)
-            if indegree1 == indegree2 and outdegree1 == outdegree2:
-                possible_vertkey.append(key2)
-        if len(possible_vertkey) == 0:
-            return False
-        for key2 in possible_vertkey:
-            #print(possible_vertkey)
-            if graph1.getVertex(key1).isPointer() and graph2.getVertex(key2).isPointer():
-                block1 = graph1.getVertex(key1).childBlock
-                block2 = graph2.getVertex(key1).childBlock
-                res = is_equal(block1, block2)
-                if not res:
-                    continue
-            new_matched_key = matched_key.copy()
-            new_matched_key.append((key1, key2))
-            res = is_equal(graph1, graph2, new_matched_key)
-            if not res:
-                continue
-            else:
-                return res
-    return False
-
-def show_details(g):
-    print('Grapg name: {}'.format(g.Graph_name))
-    print('Edges:', ' | '.join([str(i) for i in g.getEdgesKey()]))
-    print('name indegree outdegree isPointer:')
-    for v in range(len(g.getVertices())):
-        print(g.getVertex(v).name, g.getIndegree(v), g.getOutdegree(v), g.getVertex(v).isPointer(), sep = ' | ')
 
 def create_graphs(indegree_num, outdegree_num, nodes_num = 1, graphs_num = 1):
     """
@@ -272,23 +188,6 @@ def create_graphs(indegree_num, outdegree_num, nodes_num = 1, graphs_num = 1):
         gs.append(g)
     return gs
 
-def is_condition(graph):
-    #search all of the pointers in such graph
-    #check whether each pair of them fit the condition
-    #return False when some pair of pointers don't fit condition
-    pointers = list()
-    for key in graph.getVertices():
-        if graph.getVertex(key).isPointer():
-            pointers.append(graph.getVertex(key))
-    if len(pointers)>=2:
-        for i in range(len(pointers)-1):
-            for j in range(i+1, len(pointers)):
-                g1 = graph.getVertex(i).childBlock
-                g2 = graph.getVertex(j).childBlock
-                if not is_equal(g1, g2):
-                    return False
-    return True
-
 if __name__ == '__main__':
     #testing
     # g = create_graph(6, 3, 3, 'gA')
@@ -311,4 +210,4 @@ if __name__ == '__main__':
     for i in range(7):
         plot_graph(eval('gs_{}'.format(i)), eval('gs_{}'.format(i)).Graph_name)
         show_details(eval('gs_{}'.format(i)))
-    print(is_equal(gs_0, gs_0))
+    #print(is_equal(gs_0, gs_0))
