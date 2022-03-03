@@ -3,6 +3,28 @@ import os
 import networkx as nx
 import matplotlib.pyplot as plt
 
+def get_parent_nodes_key(graph, key):
+    parent_nodes = []
+    for edge in graph.getEdgesKey():
+        if edge[1] == key:
+            parent_nodes.append(edge[0])
+    return parent_nodes
+
+def get_child_nodes_key(graph, key):
+    child_nodes = []
+    for edge in graph.getEdgesKey():
+        if edge[0] == key:
+            child_nodes.append(edge[1])
+    return child_nodes
+
+def searching_loop(graph, key)->bool:
+    #judge if one node has a loop
+    p_key = get_parent_nodes_key(graph, key)
+    if key in p_key:
+        return True
+    else:
+        return False
+
 def searching_cycle(graph, key, start_key = None, searched_key = None)->bool:
     #judge if one node in the graph is in a cycle by DFS
     if searched_key == None:
@@ -39,7 +61,7 @@ def is_connected(graph, key = None, searched_key = None):
     if len(searched_key) == len(graph):
         return True
     else:
-        print(searched_key)
+        #print(searched_key)
         return False
 
 def saving_graph(graph, path = 'saving', name = None):
@@ -93,8 +115,14 @@ def plot_graph(graph, path = 'plotting', name = None ,condition = None):
         condition2colors = {'in': 'b', 'out': 'r', 'undec': 'y'}
         for label in condition:
             colors.append(condition2colors[label])
-    else: colors = 'b'
-    nx.draw(G, pos, with_labels = True, node_size = 1000, width=2.0,\
+    else: colors = 'g'
+    node_size = []
+    for key in range(len(graph)):
+        if searching_loop(graph, key):
+            node_size.append(2000)
+        else:
+            node_size.append(1000)
+    nx.draw(G, pos, with_labels = True, node_size = node_size, width=2.0,\
             node_color = colors)
     plt.title(graph.Graph_name)
     plt.show()
@@ -105,8 +133,8 @@ def plot_graph(graph, path = 'plotting', name = None ,condition = None):
 def show_details(g):
     print('Grapg name: {}'.format(g.Graph_name))
     print('Edges:', ' | '.join([str(i) for i in g.getEdgesKey()]))
-    print('name indegree outdegree isPointer label:')
+    print('name indegree outdegree isPointer label value:')
     for v in range(len(g.getVertices())):
         print(g.getVertex(v).name, g.getIndegree(v), g.getOutdegree(v), \
               g.getVertex(v).isPointer(), g.getVertex(v).condition, \
-                  sep = ' | ')
+              g.getVertex(v).value ,sep = ' | ')

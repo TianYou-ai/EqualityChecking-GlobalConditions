@@ -1,0 +1,12 @@
+Graph name: testA
+Number of nodes: 6
+Names of nodes: testA-0,testA-1,testA-2,testA-3,testA-4,testA-5
+Conditions on a position: undec,undec,undec,undec,undec,undec
+Keys of pointers: None
+(0, 5)
+(0, 3)
+(1, 2)
+(1, 0)
+(4, 2)
+(4, 5)
+(5, 4)

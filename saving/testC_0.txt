@@ -1,0 +1,7 @@
+Graph name: testC
+Number of nodes: 2
+Names of nodes: testC-0,testC-1
+Conditions on a position: in,out
+Keys of pointers: None
+(0, 1)
+(1, 0)

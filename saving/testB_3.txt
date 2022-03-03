@@ -1,0 +1,6 @@
+Graph name: testB
+Number of nodes: 4
+Names of nodes: testB-0,testB-1,testB-2,testB-3
+Conditions on a position: out,in,undec,undec
+Keys of pointers: None
+(1, 0)

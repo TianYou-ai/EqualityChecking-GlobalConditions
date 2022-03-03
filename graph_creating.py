@@ -24,6 +24,7 @@ class Vertex:
         self.ifPointer = False
         self.childBlock = None
         self.condition = None
+        self.value = key
 
     def addNeighbor(self,nbr,weight = 1):
         self.connectedTo[nbr] = weight
@@ -130,10 +131,13 @@ class Graph:
     def setCondition(self, key, label):
         self.getVertex(key).setCondition(label)
 
+    def getCondition(self, key):
+        return self.getVertex(key).condition
+
     def clone(self):
         return copy.copy(self)
 
-def create_graph(nodes_num, indegree_num, outdegree_num, name):
+def create_graph(nodes_num, indegree_num, outdegree_num, name, if_connected = True):
     nodes_num = get_nodes_num(nodes_num)
     g = Graph(name)
     max_indegree_num = indegree_num
@@ -146,7 +150,7 @@ def create_graph(nodes_num, indegree_num, outdegree_num, name):
             t = g.getVertex(nbr).getId()
             if g.getIndegree(t) < max_indegree_num:
                 g.addEdge(f, t)
-    if not is_connected(g):
+    if if_connected and not is_connected(g):
         g = create_graph(nodes_num, indegree_num, outdegree_num, name)
     return g
 

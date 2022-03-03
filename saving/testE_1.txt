@@ -1,0 +1,18 @@
+Graph name: testE
+Number of nodes: 10
+Names of nodes: testE-0,testE-1,testE-2,testE-3,testE-4,testE-5,testE-6,testE-7,testE-8,testE-9
+Conditions on a position: out,out,undec,undec,undec,undec,out,in,in,in
+Keys of pointers: None
+(0, 8)
+(0, 9)
+(1, 9)
+(1, 7)
+(3, 0)
+(4, 5)
+(4, 6)
+(5, 2)
+(5, 1)
+(6, 8)
+(7, 6)
+(9, 1)
+(9, 0)

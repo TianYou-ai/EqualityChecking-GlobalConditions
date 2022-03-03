@@ -1,102 +1,158 @@
 # -*- coding: utf-8 -*-
+import argparse
+from functools import reduce
+
 from equality_checking import is_equal
 from graph_creating import Vertex, Graph, create_graph, create_graphs
 from tools import searching_cycle, saving_graph, show_details, plot_graph, is_connected
+from tools import get_parent_nodes_key, get_child_nodes_key
 
-def labeling(graph, key, undec = False):
-    node = graph.getVertex(key)
-    if undec: #if node in cycle, then it could be undec
-        node.condition = 'undec'
+def creating_all(num, labels = ['I', 'O', 'U']):
+    #return all combination of three labels in a graph with node number num
+    #I, O , U refer to in, out and undec
+    return reduce(lambda x, y:[z0 + z1 for z0 in x for z1 in y], [labels] * num)
 
-    #'Completeness' condition
-    elif graph.getIndegree(key) == 0:
-        node.condition = 'in'
-        return 'in'
-    elif graph.getIndegree(key) > 0:
-        flag = True  #if the node's condition could be 'in'
-        for edge in graph.getEdgesKey():
-            if edge[1] == key and graph.getVertex(edge[0]).condition == 'in':
-                node.condition = 'out'
-                return 'out'
-            elif edge[1] == key and graph.getVertex(edge[0]).condition != 'out':
-                flag = False
-        if flag:
-            node.condition = 'in'
-            return 'in'
-
-    #numbers of b belongs to pred(b,a) > 0 but none of them is labeled
-    #'Weaker' condition
-    if graph.getOutdegree(key) > 0:
-        flag = True #if the node's condition could be 'in'
-        for edge in graph.getEdgesKey():
-            if edge[0] == key and graph.getVertex(edge[1]).condition == 'in':
-                node.condition = 'out'
-                return 'out'
-            if edge[0] == key and graph.getVertex(edge[1]).condition != 'out':
-                flag = False
-        if flag:
-            node.condition = 'in'
-            return 'in'
-
-    #neither 'Completeness' nor 'Weaker' condition
-    node.condition = 'undec'
-    return 'undec'
-
-def position_labeling(graph, start_key, undec = False):
-
-    #clear all labels
-    for key in graph.getVertices():
-        graph.setCondition(key, label = None)
-
-    labeled_key = list()
-    labeled_key.append(start_key)
-
-    if searching_cycle(graph, start_key) and undec == True:
-        #in cycle, possibility of 'undec'
-        labeling(graph, start_key, undec = True)
+def labeling(graph, key, label):
+    if label[key] == 'I':
+        graph.setCondition(key, 'in')
+    elif label[key] == 'O':
+        graph.setCondition(key, 'out')
+    elif label[key] == 'U':
+        graph.setCondition(key, 'undec')
     else:
-        labeling(graph, key = start_key)
+        pass
 
-    while len(labeled_key) < len(graph):
-        for edge in graph.getEdgesKey():
-            if edge[0] in labeled_key and edge[1] not in labeled_key:
-                labeling(graph, edge[1])
-                labeled_key.append(edge[1])
-        for edge in graph.getEdgesKey():
-            if edge[1] in labeled_key and edge[0] not in labeled_key:
-                labeling(graph, edge[0])
-                labeled_key.append(edge[0])
-    res = list()
+def position_labeling(graph, label):
     for key in graph.getVertices():
-        condition = graph.getVertex(key).condition
-        res.append(condition)
-    return res
+        labeling(graph, key, label)
 
-def position_labeling_all(graph):
-    possible_RES = list()
-    i = 0
-    for key in graph.getVertices():
-        if searching_cycle(graph, key):
-            res = position_labeling(graph, key, undec=True)
-            if res not in possible_RES:
-                possible_RES.append(res)
-                name = g.Graph_name +'_' + str(i)+'.png'
-                plot_graph(g, path = 'plotting', name = name, condition=res)
-                name = g.Graph_name +'_' + str(i)+'.txt'
-                saving_graph(g, name = name)
-                i += 1
-        res = position_labeling(graph, key)
-        if res not in possible_RES:
-            possible_RES.append(res)
-            name = g.Graph_name +'_' + str(i)+'.png'
-            plot_graph(g, path = 'plotting', name = name, condition=res)
-            name = g.Graph_name +'_' + str(i)+'.txt'
-            saving_graph(g, name = name)
-            i += 1
-    return possible_RES
+def completeness_checking(graph, key)->bool:
+    condition = graph.getCondition(key)
+    parent_nodes_key = get_parent_nodes_key(graph, key)
+    child_nodes_key = get_child_nodes_key(graph, key)
+    if condition == 'in':
+        for p_key in parent_nodes_key:
+            p_condition = graph.getCondition(p_key)
+            if p_condition != 'out':
+                return False
+        for c_key in child_nodes_key:
+            c_condition = graph.getCondition(c_key)
+            if c_condition != 'out':
+                return False
+    elif condition == 'out':
+        flag = False # If the parent nodes include a 'in'
+        for p_key in parent_nodes_key:
+            p_condition = graph.getCondition(p_key)
+            if p_condition == 'in':
+                flag = True
+        if not flag:
+            return False
+        for c_key in child_nodes_key:
+            c_condition = graph.getCondition(c_key)
+            if c_condition != 'in':
+                return False
+    return True
 
+def weaker_checking(graph, key)->bool:
+    condition = graph.getCondition(key)
+    parent_nodes_key = get_parent_nodes_key(graph, key)
+    child_nodes_key = get_child_nodes_key(graph, key)
+    if condition == 'in':
+        for p_key in parent_nodes_key:
+            p_condition = graph.getCondition(p_key)
+            if p_condition != 'out':
+                return False
+        for c_key in child_nodes_key:
+            c_condition = graph.getCondition(c_key)
+            if c_condition != 'out':
+                return False
+    elif condition == 'out':
+        flag = False # If the parent nodes include a 'in'
+        for p_key in parent_nodes_key:
+            p_condition = graph.getCondition(p_key)
+            if p_condition == 'in':
+                flag = True
+        if not flag:
+            return False
+    return True
+
+def position_soundness_checking(graph, key)->bool:
+    condition = graph.getCondition(key)
+    if graph.getVertex(key).isPointer():
+        for k_ in graph.getVertices():
+            if graph.getVertex(k_).isPointer() and key != k_:
+                if graph.getCondition(key) == graph.getCondition(k_):
+                    if is_equal(graph.getVertex(key).childBlock, graph.getVertex(k_).childBlock):
+                        return False
+    if not graph.getVertex(key).isPointer():
+        for k_ in graph.getVertices():
+            if not graph.getVertex(k_).isPointer() and key != k_:
+                if graph.getCondition(key) == graph.getCondition(k_):
+                    if graph.getVertex(key).value == graph.getVertex(k_).value:
+                        return False
+    return True
+
+def get_all_labels(graph, Completeness = True,
+                 Weaker = True, Position_soundness = True):
+    #return list of labels sequence fits such conditions
+    all_labels = creating_all(len(graph))
+    total_possibility = len(all_labels)
+    possible_labeling = list()
+    print('Start labeling:')
+    for i in range(len(all_labels)):
+        label = all_labels[i]
+        position_labeling(graph, label)
+        flag = True # if this is a valid labeling
+        for key in graph.getVertices():
+            if Completeness:
+                if not completeness_checking(graph, key):
+                    flag = False
+                    break
+            elif Weaker:
+                if not weaker_checking(graph, key):
+                    flag = False
+                    break
+            if Position_soundness:
+                if not position_soundness_checking(graph, key):
+                    flag = False
+                    break
+            if not flag:
+                break
+        if flag:
+            possible_labeling.append(label)
+        if i % 100000 == 0 and i>0:
+            print('Finished labeling {:.2f}%  {} / {}'.format(i*100/total_possibility, i, total_possibility))
+    print('Labeling finsihed!!!')
+    return possible_labeling
+
+def saving_all(graph, possible_labeling):
+    for i in range(len(possible_labeling)):
+        position_labeling(graph, possible_labeling[i])
+        condition = []
+        for key in graph.getVertices():
+            condition.append(graph.getCondition(key))
+        name = graph.Graph_name +'_' + str(i)+'.png'
+        plot_graph(graph, path = 'plotting', name = name, condition = condition)
+        name = g.Graph_name +'_' + str(i)+'.txt'
+        saving_graph(g, name = name)
+
+Completeness = True
+Weaker = False
+Position_soundness = False
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description='test')
+
+    parser.add_argument('--c', type=bool, default=True)
+    parser.add_argument('--w', type=bool, default=True)
+    parser.add_argument('--ps', type=bool, default=True)
+    parser.add_argument('--nodes_num', type=int, default=6)
+    parser.add_argument('--indegree_num', type=int, default=3)
+    parser.add_argument('--outdegree_num', type=int, default=3)
+    parser.add_argument('--name', type=str, default='testF')
+    parser.add_argument('--if_connected', type=bool, default=False)
+
+    args = parser.parse_args()
     # gs_0, gs_1, gs_2, gs_3, gs_4, gs_5, gs_6 = create_graphs(4, 4, 8, 7)
 
     # for i in range(7):
@@ -104,13 +160,15 @@ if __name__ == '__main__':
     #     show_details(eval('gs_{}'.format(i)))
     # saving_graph(graph = gs_0, path = 'saving')
 
-    g = create_graph(nodes_num=8, indegree_num=3, outdegree_num=3, name='test')
+    g = create_graph(args.nodes_num, args.indegree_num, args.outdegree_num, \
+                     args.name, args.if_connected)
     show_details(g)
-    plot_graph(g, path = 'plotting')
+    # plot_graph(g, path = 'plotting')
 
     # res = position_labeling(g, start_key = 0)
     # saving_graph(g)
     # plot_graph(g, path = 'plotting', condition=res)
 
-    all_res = position_labeling_all(g)
-    print(all_res)
+    all_labels = get_all_labels(g, Completeness=args.c, Weaker=args.w, Position_soundness=args.ps)
+    saving_all(g, all_labels)
+    print(all_labels)

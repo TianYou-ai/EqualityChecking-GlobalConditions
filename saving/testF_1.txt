@@ -1,0 +1,10 @@
+Graph name: testF
+Number of nodes: 6
+Names of nodes: testF-0,testF-1,testF-2,testF-3,testF-4,testF-5
+Conditions on a position: undec,undec,undec,in,undec,undec
+Keys of pointers: None
+(0, 1)
+(2, 0)
+(2, 4)
+(2, 1)
+(5, 4)

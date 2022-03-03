@@ -1,0 +1,12 @@
+Graph name: testD
+Number of nodes: 8
+Names of nodes: testD-0,testD-1,testD-2,testD-3,testD-4,testD-5,testD-6,testD-7
+Conditions on a position: undec,undec,undec,undec,undec,undec,undec,undec
+Keys of pointers: None
+(0, 5)
+(1, 4)
+(2, 0)
+(3, 6)
+(4, 3)
+(5, 7)
+(7, 1)
