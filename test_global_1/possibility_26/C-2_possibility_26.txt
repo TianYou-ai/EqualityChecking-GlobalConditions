@@ -1,0 +1,6 @@
+Graph name: C-2
+Number of nodes: 2
+Names of nodes: D-0,D-1
+Conditions on a position: undec,in
+Keys of pointers: None
+(0, 0)

@@ -1,0 +1,9 @@
+Graph name: testG
+Number of nodes: 6
+Names of nodes: testG-0,testG-1,testG-2,testG-3,testG-4,testG-5
+Conditions on a position: out,out,out,undec,in,in
+Keys of pointers: None
+(2, 1)
+(4, 2)
+(4, 0)
+(5, 1)

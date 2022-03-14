@@ -17,6 +17,17 @@ def get_child_nodes_key(graph, key):
             child_nodes.append(edge[1])
     return child_nodes
 
+def get_all_nodes(graph, nodes = None):
+    #return list of all nodes in all position under such graph's position
+    if not nodes:
+        nodes = list()
+    for key in graph.getVertices():
+        node = graph.getVertex(key)
+        nodes.append(node)
+        if node.isPointer():
+            nodes.extend(get_all_nodes(node.childBlock))
+    return nodes
+
 def searching_loop(graph, key)->bool:
     #judge if one node has a loop
     p_key = get_parent_nodes_key(graph, key)
@@ -64,7 +75,7 @@ def is_connected(graph, key = None, searched_key = None):
         #print(searched_key)
         return False
 
-def saving_graph(graph, path = 'saving', name = None):
+def saving_graph(graph, path = 'saving', name = None, auto_sav_child = True):
     if not os.path.exists(path):
         os.makedirs(path)
     if name == None:
@@ -91,9 +102,10 @@ def saving_graph(graph, path = 'saving', name = None):
         for edge in graph.getEdgesKey():
             f.write(str(edge) + '\n')
     f.close()
-    for key in graph.getVertices():
-        if graph.getVertex(key).isPointer():
-            saving_graph(graph.getVertex(key).childBlock, path)
+    if auto_sav_child:
+        for key in graph.getVertices():
+            if graph.getVertex(key).isPointer():
+                saving_graph(graph.getVertex(key).childBlock, path)
 
 def convert2networkx(g):
     G = nx.MultiDiGraph(name = g.Graph_name)

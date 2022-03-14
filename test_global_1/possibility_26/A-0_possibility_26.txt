@@ -1,0 +1,6 @@
+Graph name: A-0
+Number of nodes: 4
+Names of nodes: B-0,B-1,B-2,B-3
+Conditions on a position: undec,undec,undec,in
+Keys of pointers: None
+(1, 0)

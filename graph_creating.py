@@ -25,6 +25,7 @@ class Vertex:
         self.childBlock = None
         self.condition = None
         self.value = key
+        self.Block = None
 
     def addNeighbor(self,nbr,weight = 1):
         self.connectedTo[nbr] = weight
@@ -35,6 +36,9 @@ class Vertex:
 
     def __str__(self):
         return str(self.id) + 'connectedTo' + str([x.id for x in self.connectedTo])
+
+    def __del__(self):
+        del self
 
     def getConnections(self):
         return  self.connectedTo.keys()
@@ -64,10 +68,17 @@ class Graph:
     def __len__(self):
         return len(self.getVertices())
 
+    def __del__(self):
+        for i in range(self.numVertices):
+            node = self.getVertex(i)
+            del node
+        del self
+
     def addVertex(self, key):
         self.numVertices = self.numVertices + 1
         newVertex = Vertex(key)
         newVertex.name = "{}-{}".format(self.Graph_name, key)
+        newVertex.Block = self
         self.vertList[key] = newVertex
         return  newVertex
 
@@ -159,7 +170,7 @@ def connect_block(graph1, pointer_key, graph2):
     graph2.Graph_name = graph1.getVertex(pointer_key).name
     return graph1, graph2
 
-def create_graphs(indegree_num, outdegree_num, nodes_num = 1, graphs_num = 1):
+def create_graphs(indegree_num, outdegree_num, nodes_num = 1, graphs_num = 1, if_connected = True):
     """
     Parameters
     ----------
@@ -178,14 +189,15 @@ def create_graphs(indegree_num, outdegree_num, nodes_num = 1, graphs_num = 1):
     """
     gs = list()
     for i in range(graphs_num):
-        g = create_graph(nodes_num, indegree_num, outdegree_num, name = chr(65+i))
+        nodes_num_ = get_nodes_num(nodes_num, israndom = True)
+        g = create_graph(nodes_num_, indegree_num, outdegree_num, name = chr(65+i), if_connected = if_connected)
         if i > 0:
             #select a random number of nodes to be ポインター
             g0 = random.choice(gs)
-            v = g0.getVertex(random.randint(0, len(g0)))
+            v = g0.getVertex(random.randint(0, g0.numVertices-1))
             j = 0
             while(v.isPointer()):
-                v = g0.getVertex(random.randint(0, len(g0)))
+                v = g0.getVertex(random.randint(0, g0.numVertices-1))
                 j += 1
                 if j >= 30: break
             connect_block(g0, v.id, g)
