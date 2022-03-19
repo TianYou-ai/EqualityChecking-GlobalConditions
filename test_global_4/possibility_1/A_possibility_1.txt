@@ -1,0 +1,7 @@
+Graph name: A
+Number of nodes: 3
+Names of nodes: A-0,A-1,A-2
+Conditions on a position: in,out,out
+Keys of pointers: 0,2
+(0, 1)
+(0, 2)

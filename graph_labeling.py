@@ -187,7 +187,7 @@ def get_all_labels(graph, Completeness = True, Weaker = True,
     all_labels = creating_all(len(graph))
     total_possibility = len(all_labels)
     possible_labeling = list()
-    print('Start labeling:')
+    print('Start labeling graph {}:'.format(graph.Graph_name))
     for i in range(len(all_labels)):
         labels = all_labels[i]
         position_labeling(graph, labels)
@@ -221,7 +221,8 @@ def get_all_labels(graph, Completeness = True, Weaker = True,
 def get_all_global_labels(root_graph, Coherence, Stronger_coherence,
                           Logal, Completeness = False, Weaker = False,
                           Position_soundness = False,
-                          Stronger_position_soundness = False):
+                          Stronger_position_soundness = False,
+                          Position_conditions = None):
     nodes = get_all_nodes(root_graph)
     all_labels = creating_all(len(nodes))
     total_possibility = len(all_labels)
@@ -250,8 +251,37 @@ def get_all_global_labels(root_graph, Coherence, Stronger_coherence,
             possible_labeling.append(labels)
         if i % 100000 == 0 and i>0:
             print('Finished labeling {:.2f}%  {} / {}'.format(i*100/total_possibility, i, total_possibility))
+
+    if not Position_conditions is None:
+        graphs = list() #get all graphs
+        for node in nodes:
+            if node.Block not in graphs:
+                graphs.append(node.Block)
+        for graph_name, possible_graph_labeling in Position_conditions.items():
+            print('Start checking labeling in graph {}:'.format(graph_name))
+            new_possible_labeling = list() #update possible_labeling
+            for graph in graphs:
+                if graph.Graph_name == graph_name:
+                    break
+            for i in range(len(possible_labeling)):
+                labeling = possible_labeling[i]
+                graph_labeling = searching_graph_labeling(nodes, labeling, graph)
+                if graph_labeling in possible_graph_labeling:
+                    new_possible_labeling.append(labeling)
+            possible_labeling = new_possible_labeling
+            print('Finishd checking graph {}'.format(graph_name))
+
     print('Labeling finsihed!!!')
     return possible_labeling
+
+def searching_graph_labeling(nodes, labeling, graph):
+    labeling_in_graph = 'U' * len(graph)
+    for i in range(len(nodes)):
+        if nodes[i].Block == graph:
+            labeling_in_graph = list(labeling_in_graph)
+            labeling_in_graph[nodes[i].id] = labeling[i]
+            labeling_in_graph = ''.join(labeling_in_graph)
+    return labeling_in_graph
 
 def saving_all(graph, possible_labeling):
     for i in range(len(possible_labeling)):
@@ -293,17 +323,17 @@ if __name__ == '__main__':
     parser.add_argument('--c', type=bool, default=False)
     parser.add_argument('--w', type=bool, default=True)
     parser.add_argument('--ps', type=bool, default=True)
-    parser.add_argument('--sps', type=bool, default=True)
+    parser.add_argument('--sps', type=bool, default=False)
     parser.add_argument('--co', type=bool, default=True)
     parser.add_argument('--sco', type=bool, default=True)
     parser.add_argument('--l', type=bool, default=True)
     parser.add_argument('--nodes_num', type=int, default=4)
-    parser.add_argument('--graphs_num', type=int, default=4)
-    parser.add_argument('--indegree_num', type=int, default=2)
+    parser.add_argument('--graphs_num', type=int, default=3)
+    parser.add_argument('--indegree_num', type=int, default=1)
     parser.add_argument('--outdegree_num', type=int, default=2)
     parser.add_argument('--name', type=str, default='testG')
-    parser.add_argument('--if_connected', type=bool, default=False)
-    parser.add_argument('--path_name', type=str, default='test_global_1')
+    parser.add_argument('--if_connected', type=bool, default=True)
+    parser.add_argument('--path_name', type=str, default='test_global_4')
 
     args = parser.parse_args()
     # gs_0, gs_1, gs_2, gs_3, gs_4, gs_5, gs_6 = create_graphs(4, 4, 8, 7)
@@ -334,11 +364,21 @@ if __name__ == '__main__':
     root_graph = graphs[0]
     for graph in graphs:
         show_details(graph)
+    for graph in graphs:
+        print(graph.Graph_name)
+    graph0_name = graphs[0].Graph_name
+    graph0_labeling = get_all_labels(graphs[0], Completeness=True, Stronger_position_soundness=True)
+    graph1_name = graphs[1].Graph_name
+    graph1_labeling = get_all_labels(graphs[1], Completeness=True, Stronger_position_soundness=True)
+    Position_conditions = dict()
+    Position_conditions[graph0_name] = graph0_labeling
+    Position_conditions[graph1_name] = graph1_labeling
     possible_labeling = get_all_global_labels(root_graph, Coherence=args.co,
                                         Stronger_coherence=args.sco,
                                         Logal=args.l,
                                         Completeness=args.c,
                                         Weaker=args.w,
                                         Position_soundness=args.ps,
-                                        Stronger_position_soundness=args.sps)
+                                        Stronger_position_soundness=args.sps,
+                                        Position_conditions = Position_conditions)
     saving_all_global(root_graph, possible_labeling, path = args.path_name)

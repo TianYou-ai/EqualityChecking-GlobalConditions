@@ -143,7 +143,7 @@ def plot_graph(graph, path = 'plotting', name = None ,condition = None):
     print('plotting fig {}'.format(name))
 
 def show_details(g):
-    print('Grapg name: {}'.format(g.Graph_name))
+    print('Graph name: {}'.format(g.Graph_name))
     print('Edges:', ' | '.join([str(i) for i in g.getEdgesKey()]))
     print('name indegree outdegree isPointer label value:')
     for v in range(len(g.getVertices())):
